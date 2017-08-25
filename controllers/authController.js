@@ -1,5 +1,6 @@
 var User = require('../models/user');
 var config = require('../helpers/config');
+var constant = require('../helpers/constants');
 var jwt = require('jsonwebtoken');
 var bcrypt = require('bcrypt');
 var responseJson = require('../models/responseJson');
@@ -19,7 +20,8 @@ exports.login = function(req, res) {
         if (!user) {
             var _responseJson = responseJson.ResponseJson
             _responseJson.clear()
-            _responseJson.status(true, 600 ,'fail','User is not exist')
+            _responseJson.status(true, constant.FAILURE,'User is not exist')
+
             res.json(_responseJson.render());
 
         } else if (user &&
@@ -32,13 +34,16 @@ exports.login = function(req, res) {
 
             var _responseJson = responseJson.ResponseJson
             _responseJson.clear()
-            _responseJson.status(true, 600 ,'success',undefined)
+            _responseJson.status(false, constant.SUCCESSS ,'Login ok')
             _responseJson.data(data)
             res.json(_responseJson.render());
 
 
         } else {
-            res.json({ error : 'Login Error'})
+            var _responseJson = responseJson.ResponseJson
+            _responseJson.clear()
+            _responseJson.status(true, constant.FAILURE, 'Login Error')
+            res.json(_responseJson.render());
         }
     })
 };
