@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var index = require('./routes/index');
-var account = require('./routes/account');
+var auth = require('./routes/auth');
 var users = require('./routes/users');
 
 var app = express();
@@ -23,8 +23,23 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+var mongoose = require('mongoose');
+//connect to MongoDB
+var mongodbUri = 'mongodb://admin:12345678@ds157723.mlab.com:57723/travelworld';
+var options = {
+    useMongoClient: true,
+    server: { socketOptions: { keepAlive: 300000, connectTimeoutMS: 30000 } },
+    replset: { socketOptions: { keepAlive: 300000, connectTimeoutMS: 30000 } }
+};
+
+mongoose.connect(mongodbUri, options);
+var db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function () {console.log("Great success!")});
+
 app.use('/', index);
-app.use('/api/v1', account);
+app.use('/api/v1', auth);
 app.use('/api/v1/users', users);
 
 // catch 404 and forward to error handler
