@@ -1,14 +1,19 @@
 var express = require('express');
 var path = require('path');
-var favicon = require('serve-favicon');
+// var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var index = require('./routes/index');
+//connect to MongoDB
+var database = require('./controllers/dbController');
+database.connectMongoDb()
+
+// Routes
 var auth = require('./routes/auth');
 var users = require('./routes/users');
 
+// express
 var app = express();
 
 // view engine setup
@@ -23,22 +28,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-var mongoose = require('mongoose');
-//connect to MongoDB
-var mongodbUri = 'mongodb://admin:12345678@ds157723.mlab.com:57723/travelworld';
-var options = {
-    useMongoClient: true,
-    server: { socketOptions: { keepAlive: 300000, connectTimeoutMS: 30000 } },
-    replset: { socketOptions: { keepAlive: 300000, connectTimeoutMS: 30000 } }
-};
-
-mongoose.connect(mongodbUri, options);
-var db = mongoose.connection;
-
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function () {console.log("Great success!")});
-
-app.use('/', index);
+// using routes
 app.use('/api/v1', auth);
 app.use('/api/v1/users', users);
 
