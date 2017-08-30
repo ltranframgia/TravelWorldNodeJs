@@ -12,6 +12,7 @@ database.connectMongoDb()
 // Routes
 var auth = require('./routes/auth');
 var users = require('./routes/users');
+var timeline = require('./routes/timeline');
 
 // express
 var app = express();
@@ -31,6 +32,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // using routes
 app.use('/api/v1', auth);
 app.use('/api/v1/users', users);
+app.use('/api/v1/timeline', timeline);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

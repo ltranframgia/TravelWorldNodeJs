@@ -1,14 +1,14 @@
-var User = require('../models/user');
-var bcrypt = require('bcrypt');
-var responseJson = require('../models/responseJson');
-var constant = require('../helpers/constants');
+let User = require('../models/user');
+let bcrypt = require('bcrypt');
+let responseJson = require('../models/responseJson');
+let constant = require('../helpers/constants');
 
 // Register
 exports.create_user = function(req, res) {
 
     // get user
-    var user = new User(req.body);
-    var pwd = req.body.password
+    let user = new User(req.body);
+    let pwd = req.body.password;
 
     // validate
     if (!user.username ||
@@ -16,9 +16,9 @@ exports.create_user = function(req, res) {
         !user.email) {
 
         // response
-        var _responseJson = responseJson.ResponseJson
-        _responseJson.clear()
-        _responseJson.status(true, constant.PARAM_REQUIRE, 'Bad request')
+        let _responseJson = responseJson.ResponseJson;
+        _responseJson.clear();
+        _responseJson.status(true, constant.PARAM_REQUIRE, 'Bad request');
         res.status(400).json(_responseJson.render());
         return
     }
@@ -34,33 +34,38 @@ exports.create_user = function(req, res) {
             console.log(err);
 
             // response
-            var _responseJson = responseJson.ResponseJson
-            _responseJson.clear()
-            _responseJson.status(true, constant.DUPLICATE_USERNAME_OR_MAIL, 'Account already exists.')
+            let _responseJson = responseJson.ResponseJson;
+            _responseJson.clear();
+            _responseJson.status(true, constant.DUPLICATE_USERNAME_OR_MAIL, 'Account already exists.');
             res.status(409).json(_responseJson.render());
             return
         }
 
-        newUser.hash_password = undefined
+        newUser.hash_password = undefined;
         // response
-        var _responseJson = responseJson.ResponseJson
-        _responseJson.clear()
-        _responseJson.status(false, constant.SUCCESSS,'ok')
-        _responseJson.data([newUser])
+        let _responseJson = responseJson.ResponseJson;
+        _responseJson.clear();
+        _responseJson.status(false, constant.SUCCESSS,'ok');
+        _responseJson.data([newUser]);
         res.status(201).json(_responseJson.render());
 
     });
 
 };
 
+// Get list users
+exports.update = function(req, res) {
+
+    res.status(200).json(req.params);
+};
 
 // Get list users
 exports.list_users = function(req, res) {
 
     // find
-    User.find({}, function(err, users) {
+    User.find({}, { hash_password: false }, function(err, users) {
 
-        var _responseJson = responseJson.ResponseJson
+        let _responseJson = responseJson.ResponseJson
         _responseJson.clear()
         if (users) {
             _responseJson.status(false, 'SUCCESSS','get list users')
@@ -76,7 +81,7 @@ exports.list_users = function(req, res) {
 // Get me
 exports.me = function(req, res) {
 
-        var _responseJson = responseJson.ResponseJson
+        let _responseJson = responseJson.ResponseJson
         _responseJson.clear()
         if (req.user) {
             req.user.hash_password = undefined

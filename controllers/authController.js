@@ -28,7 +28,7 @@ exports.login = function(req, res) {
             user.comparePassword(password)) {
 
             var payload = { username: user.username };
-            var jwtToken = jwt.sign(payload, config.jwtSecret, { expiresIn: 60 * 60 });
+            var jwtToken = jwt.sign(payload, config.jwtSecret);
 
             var data = {access_token: jwtToken, refresh_token: "xxxxx-xxx-xx-x"}
 
