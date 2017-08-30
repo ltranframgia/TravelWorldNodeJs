@@ -63,7 +63,7 @@ exports.list_users = function(req, res) {
         var _responseJson = responseJson.ResponseJson
         _responseJson.clear()
         if (users) {
-            _responseJson.status(false, 'SUCCESSS','ok')
+            _responseJson.status(false, 'SUCCESSS','get list users')
             _responseJson.data(users)
             res.status(200).json(_responseJson.render());
         } else {
