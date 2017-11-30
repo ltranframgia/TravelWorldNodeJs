@@ -88,9 +88,13 @@ exports.me = function(req, res) {
             req.user.hash_password = undefined;
             req.user.refresh_token = undefined;
             req.user.created_time_token = undefined;
-            _responseJson.status(false, 'SUCCESSS','ok');
-            _responseJson.data(req.user)
-            res.status(200).json(_responseJson.render());
+
+            // response
+            let _responseJson = responseJson.status.get(true, constant.SUCCESSS ,'ok');
+            _responseJson.user = req.user;
+
+            res.json(_responseJson);
+
         } else {
             _responseJson.status(true,'FAIL','get user error')
             res.status(200).json(_responseJson.render());

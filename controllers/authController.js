@@ -92,7 +92,7 @@ exports.isAuthenticated = function(req, res, next) {
                 let currentTime = now.getTime();
                 let createdTime = payload.createdTime;
                 let differTime = (currentTime - createdTime) / 1000;
-                let time_expried = 30 * 60
+                let time_expried = 30 * 6000
                 if (differTime > time_expried ) {
                     res.status(401).json({message: 'Unauthorized user!'});
                     return;

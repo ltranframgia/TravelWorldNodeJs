@@ -10,11 +10,12 @@ var UserSchema = new mongoose.Schema({
     created_time_token: { type: String },
     email: { type: String, unique: true, lowercase: true, trim: true, required: true},
     created_date: String,
+    updated_date: String,
     first_name: String,
     last_name: String,
     birth_date: String,
     gender: String,
-    avatar: String
+    avatarUrl: String
 }, {
     collection: 'user'
 });

@@ -11,8 +11,8 @@ class Status {
 class Pagination {
     constructor(){}
 
-    render(page, page_size, total, totalPages) {
-        return {pagination: {page: page, page_size: page_size, total: total, totalPages: totalPages} }
+    get(page, page_size, total, totalPages, last_index) {
+        return {page: page, page_size: page_size, total: total, total_pages: totalPages, last_index: last_index}
     }
 
 }
