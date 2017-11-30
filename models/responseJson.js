@@ -1,4 +1,22 @@
 
+class Status {
+    constructor(){}
+
+    get(success, code, message) {
+        return { success: success, code: code, message: message }
+    }
+
+}
+
+class Pagination {
+    constructor(){}
+
+    render(page, page_size, total, totalPages) {
+        return {pagination: {page: page, page_size: page_size, total: total, totalPages: totalPages} }
+    }
+
+}
+
 class ResponseJson {
 
     constructor(){
@@ -19,8 +37,8 @@ class ResponseJson {
         this._data = data
     }
 
-    pagination(page, page_size, total) {
-      this._pagination = {page: page, page_size: page_size ,total: total}
+    pagination(page, page_size, total, totalPages) {
+      this._pagination = {page: page, page_size: page_size, total: total, totalPages: totalPages}
     }
 
     render() {
@@ -29,3 +47,5 @@ class ResponseJson {
 }
 
 exports.ResponseJson = new ResponseJson()
+exports.status = new Status()
+exports.pagination = new Pagination()

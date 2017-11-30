@@ -42,6 +42,7 @@ exports.create_user = function(req, res) {
         }
 
         newUser.hash_password = undefined;
+        newUser.refresh_token = undefined;
         // response
         let _responseJson = responseJson.ResponseJson;
         _responseJson.clear();
@@ -84,8 +85,10 @@ exports.me = function(req, res) {
         let _responseJson = responseJson.ResponseJson
         _responseJson.clear()
         if (req.user) {
-            req.user.hash_password = undefined
-            _responseJson.status(false, 'SUCCESSS','ok')
+            req.user.hash_password = undefined;
+            req.user.refresh_token = undefined;
+            req.user.created_time_token = undefined;
+            _responseJson.status(false, 'SUCCESSS','ok');
             _responseJson.data(req.user)
             res.status(200).json(_responseJson.render());
         } else {
