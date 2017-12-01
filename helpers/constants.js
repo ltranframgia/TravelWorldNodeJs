@@ -5,5 +5,5 @@ module.exports = {
     FAILURE: 'FAILURE',
     CREATED_FAILURE: 'CREATED_FAILURE',
     PAGE_SIGE: 20,
-    ACCESS_TIMEOUT: 30 * 6000,
+    ACCESS_TIMEOUT: 2 * 60 * 60,
 };
