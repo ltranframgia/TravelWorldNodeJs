@@ -1,4 +1,4 @@
-let CONSTANT = require('../helpers/constants');
+let CODE = require('../helpers/status-code');
 let JsonGenerator = require('../helpers/json-generator');
 let User = require('../models/user');
 
@@ -15,7 +15,7 @@ exports.create_user = function(req, res) {
         !user.email) {
 
         // response
-        let _responseJson = JsonGenerator.status.get(false, CONSTANT.PARAM_REQUIRE ,'Bad request');
+        let _responseJson = JsonGenerator.status.requireParameters();
         res.status(400).json(_responseJson);
 
         return
@@ -29,10 +29,8 @@ exports.create_user = function(req, res) {
 
         if (err) {
 
-            console.log(err);
-
             // response
-            let _responseJson = JsonGenerator.status.get(false, CONSTANT.DUPLICATE_USERNAME_OR_MAIL ,'Account already exists.');
+            let _responseJson = JsonGenerator.status.updateDbError(CODE.DUPLICATE_USERNAME_OR_MAIL ,'Account already exists.');
             res.status(409).json(_responseJson);
             return
         }
@@ -41,7 +39,7 @@ exports.create_user = function(req, res) {
         newUser.refresh_token = undefined;
 
         // response
-        let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'Ok');
+        let _responseJson = JsonGenerator.status.success();
         _responseJson.user = newUser;
         res.status(201).json(_responseJson);
 
@@ -49,8 +47,11 @@ exports.create_user = function(req, res) {
 
 };
 
-// Get list users
+// update user
 exports.update = function(req, res) {
+
+    // get user
+    let user = new User(req.body);
 
     res.status(200).json(req.params);
 };
@@ -63,14 +64,14 @@ exports.list_users = function(req, res) {
 
         if (users) {
             // response
-            let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'Ok');
+            let _responseJson = JsonGenerator.status.success();
             _responseJson.users = users;
             res.status(200).json(_responseJson);
 
 
         } else {
             // response
-            let _responseJson = JsonGenerator.status.get(false, CONSTANT.FAILURE ,'get user error');
+            let _responseJson = JsonGenerator.status.failure(CODE.NOT_FOUND);
             res.status(200).json(_responseJson);
         }
     })
@@ -85,13 +86,13 @@ exports.me = function(req, res) {
             req.user.created_time_token = undefined;
 
             // response
-            let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'Ok');
+            let _responseJson = JsonGenerator.status.success();
             _responseJson.user = req.user;
             res.status(200).json(_responseJson);
 
         } else {
             // response
-            let _responseJson = JsonGenerator.status.get(true, CONSTANT.FAILURE ,'get user error');
+            let _responseJson = JsonGenerator.status.failure(CODE.NOT_FOUND);
             res.status(200).json(_responseJson);
         }
 };

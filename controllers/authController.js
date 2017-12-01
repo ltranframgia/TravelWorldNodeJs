@@ -1,5 +1,6 @@
 let Config = require('../helpers/config');
 let CONSTANT = require('../helpers/constants');
+let CODE = require('../helpers/status-code');
 let JsonGenerator = require('../helpers/json-generator');
 let jwt = require('jsonwebtoken');
 let User = require('../models/user');
@@ -10,7 +11,17 @@ exports.login = function(req, res) {
     let username = req.body.username;
     let password = req.body.password;
 
-    console.log('New user: ' + username + ' ' + password );
+    // validate
+    if (!username ||
+        !password) {
+
+        // response
+        let _responseJson = JsonGenerator.status.requireParameters();
+        res.status(400).json(_responseJson);
+
+        return
+    }
+
     // find
     User.findOne({
         'username': username
@@ -18,16 +29,14 @@ exports.login = function(req, res) {
 
         if (!user) {
             // response
-            let _responseJson = JsonGenerator.status.get(false, CONSTANT.FAILURE ,'User is not exist');
-
-            res.json(_responseJson);
+            let _responseJson = JsonGenerator.status.failure(CODE.NOT_FOUND, 'User is not exist');
+            res.status(200).json(_responseJson);
 
         } else if (user &&
             user.comparePassword(password)) {
 
             let now = new Date();
             let currentTime = now.getTime();
-            console.log('Time: ' + currentTime + ' ' + user._id);
 
             let payloadAccess = { username: user.username , createdTime: currentTime};
             let payloadRefresh = { username: user.username, id: user._id, createdTime: currentTime };
@@ -43,8 +52,9 @@ exports.login = function(req, res) {
             user.save(function (err, newUser) {
 
                 if (err) {
-
-
+                    // response
+                    let _responseJson = JsonGenerator.status.updateDbError();
+                    res.status(409).json(_responseJson);
                     return;
                 }
 
@@ -52,26 +62,50 @@ exports.login = function(req, res) {
                 let data = {access_token: jwtAccessToken, refresh_token: jwtRefreshToken, token_type: "Bearer"};
 
                 // response
-                let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'Login ok');
+                let _responseJson = JsonGenerator.status.success(undefined,'Login ok');
                 _responseJson.token = data;
-
-                res.json(_responseJson);
+                res.status(200).json(_responseJson);
             });
-
-
-
         } else {
             // response
-            let _responseJson = responseJson.status.get(false, CONSTANT.FAILURE ,'Login Error');
-
-            res.json(_responseJson);
+            let _responseJson = JsonGenerator.status.failure(CODE.WRONG_USERNAME_OR_PASSWORD, 'Login Error');
+            res.status(200).json(_responseJson);
         }
     })
 };
 
 
 exports.logout = function(req, res) {
-    res.send('NOT IMPLEMENTED: logout');
+
+    if (req.user) {
+
+        // set to user
+        req.user.refresh_token =  undefined;
+        req.user.created_time_token =  undefined;
+
+        // save
+        req.user.save(function (err, newUser) {
+
+            if (err) {
+                // response
+                let _responseJson = JsonGenerator.status.updateDbError();
+                res.status(409).json(_responseJson);
+                return;
+            }
+
+            // response
+            let _responseJson = JsonGenerator.status.success();
+            res.status(200).json(_responseJson);
+        });
+
+
+
+    } else {
+        // response
+        let _responseJson = JsonGenerator.status.error();
+        res.status(200).json(_responseJson);
+    }
+
 };
 
 exports.isAuthenticated = function(req, res, next) {
@@ -83,7 +117,8 @@ exports.isAuthenticated = function(req, res, next) {
         jwt.verify(jwtToken, Config.jwtSecret, function(err, payload) {
 
             if (err) {
-                res.status(401).json({message: 'Unauthorized user!'});
+                let _responseJson = JsonGenerator.status.unauthorized();
+                res.status(401).json(_responseJson);
             } else {
 
                 // check time expried
@@ -93,31 +128,35 @@ exports.isAuthenticated = function(req, res, next) {
                 let differTime = (currentTime - createdTime) / 1000;
 
                 if (differTime > CONSTANT.ACCESS_TIMEOUT ) {
-                    res.status(401).json({message: 'Unauthorized user!'});
+                    let _responseJson = JsonGenerator.status.unauthorized();
+                    res.status(401).json(_responseJson);
                     return;
                 }
 
                 // get user
                 let username = payload.username;
+
                 // find
                 User.findOne({
                     'username': username
                 }, function(err, user) {
-                    console.log('decoder: ' + username + " " + createdTime + " " + user.created_time_token );
+
                     if (user &&
                         user.created_time_token === createdTime.toString()) {
                         req.user = user;
                         next();
 
                     } else {
-                        res.status(401).json({ message: 'Unauthorized user!' });
+                        let _responseJson = JsonGenerator.status.unauthorized();
+                        res.status(401).json(_responseJson);
                     }
                 })
             }
 
         });
     } else {
-        res.status(401).json({ message: 'Unauthorized user!' });
+        let _responseJson = JsonGenerator.status.unauthorized();
+        res.status(401).json(_responseJson);
 
     }
 };
@@ -133,7 +172,8 @@ exports.token = function(req, res, next) {
         jwt.verify(refreshToken, Config.jwtSecret, function(err, payload) {
 
             if (err) {
-                res.status(401).json({message: 'Unauthorized user!'});
+                let _responseJson = JsonGenerator.status.unauthorized();
+                res.status(401).json(_responseJson);
             } else {
 
                 let username = payload.username;
@@ -163,8 +203,9 @@ exports.token = function(req, res, next) {
                         user.save(function (err, newUser) {
 
                             if (err) {
-
-
+                                // response
+                                let _responseJson = JsonGenerator.status.updateDbError();
+                                res.status(409).json(_responseJson);
                                 return;
                             }
 
@@ -172,7 +213,7 @@ exports.token = function(req, res, next) {
                             let data = {access_token: jwtAccessToken, refresh_token: jwtRefreshToken, token_type: "Bearer"};
 
                             // response
-                            let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'RefreshToken ok');
+                            let _responseJson = JsonGenerator.status.success();
                             _responseJson.token = data;
 
                             res.json(_responseJson);
@@ -180,14 +221,16 @@ exports.token = function(req, res, next) {
 
 
                     } else {
-                        res.status(401).json({ message: 'Unauthorized user!' });
+                        let _responseJson = JsonGenerator.status.unauthorized();
+                        res.status(401).json(_responseJson);
                     }
                 })
             }
 
         });
     } else {
-        res.status(401).json({ message: 'Unauthorized user!' });
+        let _responseJson = JsonGenerator.status.unauthorized();
+        res.status(401).json(_responseJson);
     }
 
 };

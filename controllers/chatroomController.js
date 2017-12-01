@@ -14,13 +14,14 @@ exports.create_chatroom = function(req, res) {
 
         if (err) {
 
-            let _responseJson = JsonGenerator.status.get(false, CONSTANT.CREATED_FAILURE ,'');
+            // response
+            let _responseJson = JsonGenerator.status.updateDbError();
             res.status(409).json(_responseJson);
-            return
+            return;
         }
 
         // response
-        let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'get ok');
+        let _responseJson = JsonGenerator.status.success();
         _responseJson.chatroom = newChatroom.populate('admin_id');
 
         res.status(201).json(_responseJson);
@@ -42,24 +43,25 @@ exports.list_chatroom = function(req, res) {
         let last_index = skip + chatroom.length;
         if (chatroom) {
             ChatRoom.count().exec(function(err, count) {
-                if (err)
-                    return next(err);
+                if (err) {
+                    // response
+                    let _responseJson = JsonGenerator.status.updateDbError();
+                    res.status(409).json(_responseJson);
+                    return;
+                }
 
                 // response
-                let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'get ok');
+                let _responseJson = JsonGenerator.status.success();
                 let pagination = JsonGenerator.pagination.get(page, page_size, count, Math.ceil(count / page_size), last_index);
                 _responseJson.chatrooms = chatroom;
-
                 _responseJson.pagination = pagination;
-
-                res.json(_responseJson);
+                res.status(200).json(_responseJson);
             })
 
         } else {
             // response
-            let _responseJson = JsonGenerator.status.get(false, CONSTANT.SUCCESSS ,'get fail');
-
-            res.json(_responseJson);
+            let _responseJson = JsonGenerator.status.failure();
+            res.status(200).json(_responseJson);
 
         }
     })
