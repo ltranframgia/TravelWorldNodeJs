@@ -1,14 +1,13 @@
-var User = require('../models/user');
-var bcrypt = require('bcrypt');
-var responseJson = require('../models/responseJson');
-var constant = require('../helpers/constants');
+let CONSTANT = require('../helpers/constants');
+let JsonGenerator = require('../helpers/json-generator');
+let User = require('../models/user');
 
 // Register
 exports.create_user = function(req, res) {
 
     // get user
-    var user = new User(req.body);
-    var pwd = req.body.password
+    let user = new User(req.body);
+    let pwd = req.body.password;
 
     // validate
     if (!user.username ||
@@ -16,15 +15,14 @@ exports.create_user = function(req, res) {
         !user.email) {
 
         // response
-        var _responseJson = responseJson.ResponseJson
-        _responseJson.clear()
-        _responseJson.status(true, constant.PARAM_REQUIRE, 'Bad request')
-        res.status(400).json(_responseJson.render());
+        let _responseJson = JsonGenerator.status.get(false, CONSTANT.PARAM_REQUIRE ,'Bad request');
+        res.status(400).json(_responseJson);
+
         return
     }
 
     // create hash pwd
-    user.hash_password = bcrypt.hashSync(pwd, 10);
+    user.hash_password = user.createHashPassword(pwd);
 
     // save
     user.save(function (err, newUser) {
@@ -34,41 +32,46 @@ exports.create_user = function(req, res) {
             console.log(err);
 
             // response
-            var _responseJson = responseJson.ResponseJson
-            _responseJson.clear()
-            _responseJson.status(true, constant.DUPLICATE_USERNAME_OR_MAIL, 'Account already exists.')
-            res.status(409).json(_responseJson.render());
+            let _responseJson = JsonGenerator.status.get(false, CONSTANT.DUPLICATE_USERNAME_OR_MAIL ,'Account already exists.');
+            res.status(409).json(_responseJson);
             return
         }
 
-        newUser.hash_password = undefined
+        newUser.hash_password = undefined;
+        newUser.refresh_token = undefined;
+
         // response
-        var _responseJson = responseJson.ResponseJson
-        _responseJson.clear()
-        _responseJson.status(false, constant.SUCCESSS,'ok')
-        _responseJson.data([newUser])
-        res.status(201).json(_responseJson.render());
+        let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'Ok');
+        _responseJson.user = newUser;
+        res.status(201).json(_responseJson);
 
     });
 
 };
 
+// Get list users
+exports.update = function(req, res) {
+
+    res.status(200).json(req.params);
+};
 
 // Get list users
 exports.list_users = function(req, res) {
 
     // find
-    User.find({}, function(err, users) {
+    User.find({}, { hash_password: false, refresh_token: false, created_time_token : false }, function(err, users) {
 
-        var _responseJson = responseJson.ResponseJson
-        _responseJson.clear()
         if (users) {
-            _responseJson.status(false, 'SUCCESSS','get list users')
-            _responseJson.data(users)
-            res.status(200).json(_responseJson.render());
+            // response
+            let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'Ok');
+            _responseJson.users = users;
+            res.status(200).json(_responseJson);
+
+
         } else {
-            _responseJson.status(true,'FAIL','get user error')
-            res.status(200).json(_responseJson.render());
+            // response
+            let _responseJson = JsonGenerator.status.get(false, CONSTANT.FAILURE ,'get user error');
+            res.status(200).json(_responseJson);
         }
     })
 };
@@ -76,15 +79,19 @@ exports.list_users = function(req, res) {
 // Get me
 exports.me = function(req, res) {
 
-        var _responseJson = responseJson.ResponseJson
-        _responseJson.clear()
         if (req.user) {
-            req.user.hash_password = undefined
-            _responseJson.status(false, 'SUCCESSS','ok')
-            _responseJson.data(req.user)
-            res.status(200).json(_responseJson.render());
+            req.user.hash_password = undefined;
+            req.user.refresh_token = undefined;
+            req.user.created_time_token = undefined;
+
+            // response
+            let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'Ok');
+            _responseJson.user = req.user;
+            res.status(200).json(_responseJson);
+
         } else {
-            _responseJson.status(true,'FAIL','get user error')
-            res.status(200).json(_responseJson.render());
+            // response
+            let _responseJson = JsonGenerator.status.get(true, CONSTANT.FAILURE ,'get user error');
+            res.status(200).json(_responseJson);
         }
 };
