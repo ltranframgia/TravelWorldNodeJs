@@ -12,7 +12,6 @@ database.connectMongoDb()
 // Routes
 var auth = require('./routes/auth');
 var users = require('./routes/users');
-var timeline = require('./routes/timeline');
 var chatroom = require('./routes/chatroom');
 
 // express
@@ -33,7 +32,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 // using routes
 app.use('/api/v1', auth);
 app.use('/api/v1/users', users);
-app.use('/api/v1/timeline', timeline);
 app.use('/api/v1/chatroom', chatroom);
 
 // catch 404 and forward to error handler

@@ -1,6 +1,6 @@
+var CONSTANT = require('../helpers/constants');
+var JsonGenerator = require('../helpers/json-generator');
 var ChatRoom = require('../models/chatroom');
-var responseJson = require('../models/responseJson');
-var constant = require('../helpers/constants');
 
 // create
 exports.create_chatroom = function(req, res) {
@@ -14,13 +14,13 @@ exports.create_chatroom = function(req, res) {
 
         if (err) {
 
-            let _responseJson = responseJson.status.get(false, constant.CREATED_FAILURE ,'');
+            let _responseJson = JsonGenerator.status.get(false, CONSTANT.CREATED_FAILURE ,'');
             res.status(409).json(_responseJson);
             return
         }
 
         // response
-        let _responseJson = responseJson.status.get(true, constant.SUCCESSS ,'get ok');
+        let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'get ok');
         _responseJson.chatroom = newChatroom.populate('admin_id');
 
         res.status(201).json(_responseJson);
@@ -33,21 +33,21 @@ exports.create_chatroom = function(req, res) {
 exports.list_chatroom = function(req, res) {
 
     let page = parseInt(req.query.page) || 1;
-    let page_size = parseInt(req.query.page_size) || 20;
+    let page_size = parseInt(req.query.page_size) || CONSTANT.PAGE_SIGE;
     let skip = page * page_size - page_size;
 
     // find
     ChatRoom.find().skip(skip).limit(page_size).exec(function(err, chatroom) {
 
-        let last_index = skip + chatroom.length
+        let last_index = skip + chatroom.length;
         if (chatroom) {
             ChatRoom.count().exec(function(err, count) {
                 if (err)
-                    return next(err)
+                    return next(err);
 
                 // response
-                let _responseJson = responseJson.status.get(true, constant.SUCCESSS ,'get ok');
-                let pagination = responseJson.pagination.get(page, page_size, count, Math.ceil(count / page_size), last_index);
+                let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'get ok');
+                let pagination = JsonGenerator.pagination.get(page, page_size, count, Math.ceil(count / page_size), last_index);
                 _responseJson.chatrooms = chatroom;
 
                 _responseJson.pagination = pagination;
@@ -57,7 +57,7 @@ exports.list_chatroom = function(req, res) {
 
         } else {
             // response
-            let _responseJson = responseJson.status.get(false, constant.SUCCESSS ,'get fail');
+            let _responseJson = JsonGenerator.status.get(false, CONSTANT.SUCCESSS ,'get fail');
 
             res.json(_responseJson);
 

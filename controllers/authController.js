@@ -1,9 +1,8 @@
-let User = require('../models/user');
-let config = require('../helpers/config');
-let constant = require('../helpers/constants');
+let Config = require('../helpers/config');
+let CONSTANT = require('../helpers/constants');
+let JsonGenerator = require('../helpers/json-generator');
 let jwt = require('jsonwebtoken');
-let bcrypt = require('bcrypt');
-let responseJson = require('../models/responseJson');
+let User = require('../models/user');
 
 // login
 exports.login = function(req, res) {
@@ -19,7 +18,7 @@ exports.login = function(req, res) {
 
         if (!user) {
             // response
-            let _responseJson = responseJson.status.get(false, constant.FAILURE ,'User is not exist');
+            let _responseJson = JsonGenerator.status.get(false, CONSTANT.FAILURE ,'User is not exist');
 
             res.json(_responseJson);
 
@@ -33,8 +32,8 @@ exports.login = function(req, res) {
             let payloadAccess = { username: user.username , createdTime: currentTime};
             let payloadRefresh = { username: user.username, id: user._id, createdTime: currentTime };
 
-            let jwtAccessToken = jwt.sign(payloadAccess, config.jwtSecret);
-            let jwtRefreshToken = jwt.sign(payloadRefresh, config.jwtSecret);
+            let jwtAccessToken = jwt.sign(payloadAccess, Config.jwtSecret);
+            let jwtRefreshToken = jwt.sign(payloadRefresh, Config.jwtSecret);
 
             // set to user
             user.refresh_token =  jwtRefreshToken;
@@ -53,7 +52,7 @@ exports.login = function(req, res) {
                 let data = {access_token: jwtAccessToken, refresh_token: jwtRefreshToken, token_type: "Bearer"};
 
                 // response
-                let _responseJson = responseJson.status.get(true, constant.SUCCESSS ,'Login ok');
+                let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'Login ok');
                 _responseJson.token = data;
 
                 res.json(_responseJson);
@@ -63,7 +62,7 @@ exports.login = function(req, res) {
 
         } else {
             // response
-            let _responseJson = responseJson.status.get(false, constant.FAILURE ,'Login Error');
+            let _responseJson = responseJson.status.get(false, CONSTANT.FAILURE ,'Login Error');
 
             res.json(_responseJson);
         }
@@ -80,8 +79,8 @@ exports.isAuthenticated = function(req, res, next) {
         req.headers.authorization &&
         req.headers.authorization.split(' ')[0] === 'JWT') {
 
-        var jwtToken =  req.headers.authorization.split(' ')[1];
-        jwt.verify(jwtToken, config.jwtSecret, function(err, payload) {
+        let jwtToken =  req.headers.authorization.split(' ')[1];
+        jwt.verify(jwtToken, Config.jwtSecret, function(err, payload) {
 
             if (err) {
                 res.status(401).json({message: 'Unauthorized user!'});
@@ -92,14 +91,14 @@ exports.isAuthenticated = function(req, res, next) {
                 let currentTime = now.getTime();
                 let createdTime = payload.createdTime;
                 let differTime = (currentTime - createdTime) / 1000;
-                let time_expried = 30 * 6000
+                let time_expried = CONSTANT.ACCESS_TIMEOUT;
                 if (differTime > time_expried ) {
                     res.status(401).json({message: 'Unauthorized user!'});
                     return;
                 }
 
                 // get user
-                let username = payload.username
+                let username = payload.username;
                 // find
                 User.findOne({
                     'username': username
@@ -131,13 +130,13 @@ exports.token = function(req, res, next) {
 
         let refreshToken = req.body.refresh_token;
 
-        jwt.verify(refreshToken, config.jwtSecret, function(err, payload) {
+        jwt.verify(refreshToken, Config.jwtSecret, function(err, payload) {
 
             if (err) {
                 res.status(401).json({message: 'Unauthorized user!'});
             } else {
 
-                let username = payload.username
+                let username = payload.username;
 
                 // find
                 User.findOne({
@@ -153,8 +152,8 @@ exports.token = function(req, res, next) {
                         let payloadAccess = { username: user.username , createdTime: currentTime};
                         let payloadRefresh = { username: user.username, email: user.email, createdTime: currentTime };
 
-                        let jwtAccessToken = jwt.sign(payloadAccess, config.jwtSecret);
-                        let jwtRefreshToken = jwt.sign(payloadRefresh, config.jwtSecret);
+                        let jwtAccessToken = jwt.sign(payloadAccess, Config.jwtSecret);
+                        let jwtRefreshToken = jwt.sign(payloadRefresh, Config.jwtSecret);
 
                         // set to user
                         user.refresh_token =  jwtRefreshToken;
@@ -173,7 +172,7 @@ exports.token = function(req, res, next) {
                             let data = {access_token: jwtAccessToken, refresh_token: jwtRefreshToken, token_type: "Bearer"};
 
                             // response
-                            let _responseJson = responseJson.status.get(true, constant.SUCCESSS ,'RefreshToken ok');
+                            let _responseJson = JsonGenerator.status.get(true, CONSTANT.SUCCESSS ,'RefreshToken ok');
                             _responseJson.token = data;
 
                             res.json(_responseJson);

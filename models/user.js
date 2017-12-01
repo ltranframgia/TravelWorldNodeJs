@@ -25,5 +25,10 @@ UserSchema.methods.comparePassword = function (password) {
     return bcrypt.compareSync(password, this.hash_password)
 }
 
+// comparePassword
+UserSchema.methods.createHashPassword = function (password) {
+    return bcrypt.hashSync(password, 10);
+}
+
 //Export function to create "UserSchema" model class
 module.exports = mongoose.model('User', UserSchema );

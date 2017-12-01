@@ -10,5 +10,4 @@ router.post('/', auth_controller.isAuthenticated, chatroom_Controller.create_cha
 // GET list chatroom
 router.get('/', auth_controller.isAuthenticated, chatroom_Controller.list_chatroom);
 
-
 module.exports = router;
